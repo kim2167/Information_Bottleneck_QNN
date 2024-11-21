@@ -7,8 +7,11 @@
      
   * We referred to https://github.com/artemyk/ibsgd for the implementation.
 ## Quantum:
-  1. Set parameters in /src/quantum/run_Q_info_bottleneck.py
-  2. Run /src/quantum/run_Q_info_bottleneck.py
-  3. 
+  1. Set parameters in /src/quantum/Q_info_bottleneck.py
+  2. Run /src/quantum/Q_info_bottleneck.py
+
+
+
+Paper: will be updated.
 
 Please contact to wang5360@purdue.edu or kim2167@purdue.edu if you have any questions!
