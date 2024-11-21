@@ -1,7 +1,5 @@
 '''
 Created on Aug 10, 2024
-
-@author: mnk41
 '''
 import os
 import pennylane as qml
@@ -15,8 +13,6 @@ import random
 import matplotlib.pyplot as plt
 nqubits = 6
 dev = qml.device("default.mixed", wires=nqubits)
-
-# report_txt = open("outputs_0.0008_80.txt", "w")
 
 def gen_dataset(size_dataset, name_dataset):
 
@@ -67,18 +63,15 @@ def get_dataset(size_dataset, ratio_training):
     X = np.array(data[:, :-1], requires_grad=False)
     Y = np.array(data[:, -1], requires_grad=False)
     Y = Y * 2 - np.ones(len(Y))  # shift label from {0, 1} to {-1, 1}
-    # X_train = X[:50]
-    # Y_train = Y[:50]
+
 
     num_train = int(ratio_training * size_dataset)
     index = np.random.permutation(range(size_dataset))
 
     X_train = X[index[:num_train]]
-    # X_test = Y[index[num_train:]]
-    X_test = Y[index[-14:]]
+    X_test = Y[index[num_train:]]
     Y_train = Y[index[:num_train]]
-    # Y_test = Y[index[num_train:]]
-    Y_test = Y[index[-14::]]
+    Y_test = Y[index[num_train:]]
 
     return X_train, X_test, Y_train, Y_test, X, Y
 
@@ -184,7 +177,6 @@ def mutual_info_calc(X,Y, template, wires, dev, *args, **kwargs):
     xhaty_dim = 2* state_dim
     ystate_dim = 2
 
-
     # prepare input, output ensemble, target ensemble
     input_ensemble = get_X_ensemble(X)
     output_ensemble = [find_output_state(x) for x in X if LA.norm(x) != 0]
@@ -201,7 +193,6 @@ def mutual_info_calc(X,Y, template, wires, dev, *args, **kwargs):
         target_ensemble.append(np.outer(ytrial, np.conj(ytrial)))
         ytrial = np.zeros((ystate_dim))
 
-
     # prepare the mixed state of x, xhat, y
     x_dmat = np.zeros((state_dim, state_dim))
     y_dmat = np.zeros((ystate_dim, ystate_dim))
@@ -210,7 +201,6 @@ def mutual_info_calc(X,Y, template, wires, dev, *args, **kwargs):
         x_dmat = x_dmat + input_ensemble[i]/len_input
         y_dmat = y_dmat + target_ensemble[i]/len_input
         xhat_dmat = xhat_dmat +  output_ensemble[i]/len_input
-
 
     # construct the joint state of the composite system x, xhat
     joint_dmat_xxhat = np.zeros((tensor_dim, tensor_dim))
@@ -250,18 +240,21 @@ def mutual_info_calc(X,Y, template, wires, dev, *args, **kwargs):
 
 if __name__ == '__main__':
     
+    size_data = 64
+    ratio_train = 0.8
 
-    X_train, X_test, Y_train, Y_test, X, Y = get_dataset(64, 0.8) 
-
-    np.random.seed(0)
+    X_train, X_test, Y_train, Y_test, X, Y = get_dataset(size_data, ratio_train) 
     num_qubits = nqubits
     num_layers = 6
 
-    weights_init = 0.01 * np.random.randn(num_layers, num_qubits, 3, requires_grad=True)
+    weights_init = 0.02 * np.random.randn(num_layers, num_qubits, 3, requires_grad=True)
     bias_init = np.array(0.0, requires_grad=True)
 
+    # You can use different optimizer also.
+    # https://docs.pennylane.ai/en/stable/code/qml.html
     opt = NesterovMomentumOptimizer(0.0008)
     batch_size = 32
+
     losses = []
     vals = []
 
@@ -309,20 +302,17 @@ if __name__ == '__main__':
         Sy_1.append(S_xhaty_1)
         mut_infos_1.append(mutual_1)
 
-
         # 2rd layer
         S_xxhat_2,S_xhaty_2,mutual_2 = mutual_info_calc(X, Y, ansatz, range(nqubits), dev, weights[:2])
         Sx_2.append(S_xxhat_2)
         Sy_2.append(S_xhaty_2)
         mut_infos_2.append(mutual_2)
 
-
         # 3rd layer
         S_xxhat_3,S_xhaty_3,mutual_3 = mutual_info_calc(X, Y, ansatz, range(nqubits), dev, weights[:3])
         Sx_3.append(S_xxhat_3)
         Sy_3.append(S_xhaty_3)
         mut_infos_3.append(mutual_3)
-
 
         # 4th layer
         S_xxhat_4,S_xhaty_4,mutual_4 = mutual_info_calc(X, Y, ansatz, range(nqubits), dev, weights[:4])
@@ -342,19 +332,12 @@ if __name__ == '__main__':
         Sy_6.append(S_xhaty_6)
         mut_infos_6.append(mutual_6)
 
-
-        #loss and evaluation
         losses.append(acc)
-        # vals.append(acc_val)
 
         print(
             "Iter: {:5d} | Cost: {:0.7f} | Acc train: {:0.7f} | Information: {:0.7f} "
             "".format(it + 1, cost(weights, bias, X, Y), acc, 0)
         )
-
-        # report_txt.write("Iter: {:5d} | Cost: {:0.7f} | Acc train: {:0.7f} | Information: {:0.7f} "
-        #     "".format(it + 1, cost(weights, bias, X, Y), acc, 0))
-        # report_txt.write("\n\n")
 
         print(len(Sx_1))
 
@@ -362,88 +345,32 @@ if __name__ == '__main__':
 
     plt.scatter(Sx_1,Sy_1,color="red",label="layer1")
     plt.plot(Sx_1,Sy_1,color="red",linestyle='dashed')
-    # plt.plot(Sx_1[50:],Sy_1[50:],color="orange")
 
     plt.scatter(Sx_2,Sy_2,color="orange",label="layer2")
     plt.plot(Sx_2,Sy_2,color="orange",linestyle='dashed')
-    # plt.plot(Sx_2[50:],Sy_2[50:],color="orange")
-
 
     plt.scatter(Sx_3,Sy_3,color="blue",label="layer3")
     plt.plot(Sx_3,Sy_3,color="blue",linestyle='dashed')
-    # plt.plot(Sx_3[50:],Sy_3[50:],color="orange")
-    # plt.show()
+
     plt.scatter(Sx_4,Sy_4,color="green",label="layer4")
     plt.plot(Sx_4,Sy_4,color="green",linestyle='dashed')
-    # plt.plot(Sx_4[-50:],Sy_4[-50:],color="orange")
 
     plt.scatter(Sx_5,Sy_5,color="purple",label="layer5")
     plt.plot(Sx_5,Sy_5,color="purple",linestyle='dashed')
-    # plt.plot(Sx_5[-50:],Sy_5[-50:],color="orange")
 
     plt.scatter(Sx_6,Sy_6,color="black",label="layer6")
     plt.plot(Sx_6,Sy_6,color="black",linestyle='dashed')
-    # plt.plot(Sx_6[-5:],Sy_6[-5:],color="orange")
+
     plt.legend(fontsize=15)
     plt.xlabel('I(X;T)', fontsize = 20) 
     plt.ylabel('I(Y;T)', fontsize = 20) 
     plt.xticks(fontsize = 15)
     plt.yticks(fontsize = 15)
-    # fig.savefig('./result/orthog64_0118/plot.png',dpi=300) 
-    # plt.savefig("plot_0.0008_80_1.png", dpi=300)
-    plt.savefig("plot_1.png", dpi=300)
 
+    plt.savefig("plot_1.png", dpi=300)
     plt.clf()
     plt.close()
-
     plt.plot(losses)
     plt.savefig("plot_2.png", dpi=300)
-
     plt.clf()
     plt.close()
-
-
-    # report_txt.write("Sx_1:")
-    # report_txt.write(str(Sx_1))
-    # report_txt.write("\n")
-    # report_txt.write("Sx_2:")
-    # report_txt.write(str(Sx_2))
-    # report_txt.write("\n")
-    # report_txt.write("Sx_2:")
-    # report_txt.write(str(Sx_2))
-    # report_txt.write("\n")
-    # report_txt.write("Sx_3:")
-    # report_txt.write(str(Sx_3))
-    # report_txt.write("\n")
-    # report_txt.write("Sx_3:")
-    # report_txt.write(str(Sx_3))
-    # report_txt.write("\n")
-    # report_txt.write("Sx_4:")
-    # report_txt.write(str(Sx_4))
-    # report_txt.write("\n")
-    # report_txt.write("Sx_5:")
-    # report_txt.write(str(Sx_5))
-    # report_txt.write("\n")
-    
-
-    # report_txt.write("Sy_1:")
-    # report_txt.write(str(Sy_1))
-    # report_txt.write("\n")
-    # report_txt.write("Sy_2:")
-    # report_txt.write(str(Sy_2))
-    # report_txt.write("\n")
-    # report_txt.write("Sy_2:")
-    # report_txt.write(str(Sy_2))
-    # report_txt.write("\n")
-    # report_txt.write("Sy_3:")
-    # report_txt.write(str(Sy_3))
-    # report_txt.write("\n")
-    # report_txt.write("Sy_3:")
-    # report_txt.write(str(Sy_3))
-    # report_txt.write("\n")
-    # report_txt.write("Sy_4:")
-    # report_txt.write(str(Sy_4))
-    # report_txt.write("\n")
-    # report_txt.write("Sy_5:")
-    # report_txt.write(str(Sy_5))
-    # report_txt.write("\n")
