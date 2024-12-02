@@ -10,7 +10,7 @@ if __name__ == '__main__':
     list_layer_dim = [[32, 48, 24, 8, 4], [32, 48, 24, 8, 2], [32, 64, 24, 8, 4], [16, 32, 24, 8, 4], [12, 24, 24, 8, 8]]
    
     batch_size = 32 
-    ratio_train = 0.8
+    ratio_train = 1.0
     num_epochs = 2000
     size_data = 64
     gen_dataset = False 
