@@ -144,8 +144,8 @@ def compute_MI(input_set):
     DO_LOWER = (infoplane_measure == 'lower')   # Whether to compute lower bounds also
     
     NUM_LABELS = 2
-    MAX_EPOCHS = 1000
-    COLORBAR_MAX_EPOCHS = 1000
+    MAX_EPOCHS = 500
+    COLORBAR_MAX_EPOCHS = 500
 
     # Directories from which to load saved layer activity
     ARCH = arch_layer
