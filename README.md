@@ -12,6 +12,6 @@
 
 
 
-Paper: will be updated.
+Paper: https://openreview.net/pdf?id=ImFpv7IPWh
 
 Please contact to wang5360@purdue.edu or kim2167@purdue.edu if you have any questions!
